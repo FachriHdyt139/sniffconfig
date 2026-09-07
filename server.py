@@ -221,7 +221,7 @@ def tg_file(f, data):
 # --- bot sniff Telegram (bot 2) jalan di proses yang sama: hemat 1 service Render ---
 # Gunicorn cuma nge-set WEBLOGIC/SERVER_NAME di worker #1; kita pakai env var sendiri biar
 # nggak dobel polling. Render: start command pakai SNIFF_BOT=1 cuma di worker yang sama.
-if os.environ.get("SNIFF_BOT", "1") == "1":  # default nyala; matikan dgn SNIFF_BOT=0
+if os.environ.get("SNIFF_BOT", "0") == "1":  # default MATI; Render nyala krn Procfile set SNIFF_BOT=1
     try:
         import sniffbot
         sniffbot.start()
