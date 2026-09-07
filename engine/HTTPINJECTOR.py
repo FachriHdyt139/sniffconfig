@@ -252,7 +252,7 @@ class EHIDecryptor:
             f"{'='*30}\n\n"
             f"{json.dumps(cleaned_final_json, indent=4, ensure_ascii=False)}\n\n"
             f"{'='*30}\n"
-            f"code : @HABIBI_1ST and @NullptrO"
+            f"code : @BleackCoderr"
         )
 
 

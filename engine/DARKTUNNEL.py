@@ -120,7 +120,7 @@ class DTDecryptor:
                 f"{'='*30}\n\n"
                 f"{json.dumps(normalized, indent=4, ensure_ascii=False)}\n\n"
                 f"{'='*30}\n"
-                f"code : @HABIBI_1ST"
+                f"code : @BleackCoderr"
             )
             
         return None

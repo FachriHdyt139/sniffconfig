@@ -94,7 +94,7 @@ def run(file_bytes):
             f"{'='*30}\n\n"
             f"{json.dumps(result_json, indent=4, ensure_ascii=False)}\n\n"
             f"{'='*30}\n"
-            f"code : @HABIBI_1ST and @NullptrO"
+            f"code : @BleackCoderr"
         )
 
     except Exception:
