@@ -1,10 +1,16 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#FFDE00">
-<title>🐴 SNIFF CONFIG — @BleackCoderr</title>
+<meta name="theme-color" content="#F2EDDF">
+<title>Sniff Config — Tool Baca File .HC .EHI .SSC .NPV .NPVT Online Gratis</title>
+<meta name="description" content="Sniff config online gratis & instan. Dukung HTTP Custom (.hc), HTTP Injector (.ehi), SSC Custom, NPV Tunnel (.npv/.npvt), Dark Tunnel. Tanpa login, tanpa upload ke server pihak ketiga. by @BleackCoderr">
+<meta name="keywords" content="sniff config, decrypt hc, ehi decryptor, npvt decrypt, ssc config, http custom, http injector, config vpn, bleackcoderr">
+<meta property="og:title" content="🐴 Sniff Config — Baca Isi File Config dalam 3 Detik">
+<meta property="og:description" content="Seret file .hc/.ehi/.ssc/.npv/.npvt → isi aslinya langsung muncul. Gratis, no login. by @BleackCoderr">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
@@ -14,24 +20,27 @@
 
 <header class="topbar">
   <div class="logo">SNIFF<span>CONFIG</span><i class="ver">v1.0</i></div>
-  <a class="tg-sticker" href="https://t.me/BleackCoderr" target="_blank" rel="noopener">✦ @BleackCoderr</a>
+  <div class="top-actions">
+    <button class="theme-btn" id="themeBtn" title="Ganti tema">🌙</button>
+    <a class="tg-sticker" href="https://t.me/BleackCoderr" target="_blank" rel="noopener">✦ @BleackCoderr</a>
+  </div>
 </header>
 
 <main>
 <section class="hero">
   <div class="badges">
-    <span class="badge b-pink rotate-l">GANTI TAMPANG ✊</span>
-    <span class="badge b-cyan rotate-r">GRATIS TERUS</span>
-    <span class="badge b-lime rotate-l">NO LOGIN</span>
+    <span class="badge b1">100% GRATIS</span>
+    <span class="badge b2">TANPA LOGIN</span>
+    <span class="badge b3">HASIL INSTAN</span>
   </div>
   <h1 class="mega">SNIFF&nbsp;<span class="outline">CONFIG</span><span class="boom">✸</span></h1>
   <p class="tagline">LEMPAR FILE CONFIG → LIHAT ISI ASLINYA. <b>.HC&nbsp;.EHI&nbsp;.SSC&nbsp;.NPV&nbsp;.NPVT&nbsp;.DARK</b></p>
 </section>
 
 <section class="stats">
-  <div class="stat s-yellow"><b id="myTotal">0</b><span>TOTAL SNIFF</span></div>
-  <div class="stat s-lime"><b id="mySuccess">0</b><span>BERHASIL ✔</span></div>
-  <div class="stat s-pink"><b id="myFailed">0</b><span>GAGAL ✘</span></div>
+  <div class="stat s1"><b id="myTotal">0</b><span>TOTAL SNIFF</span></div>
+  <div class="stat s2"><b id="mySuccess">0</b><span>BERHASIL ✔</span></div>
+  <div class="stat s3"><b id="myFailed">0</b><span>GAGAL ✘</span></div>
 </section>
 
 <section class="machine">
@@ -48,7 +57,7 @@
       <div class="drop-sub">— atau klik buat pilih dari galeri file —</div>
       <div class="formats"><b>.HC</b><b>.EHI</b><b>.SSC</b><b>.NPV</b><b>.NPVT</b><b>.DARK</b></div>
     </label>
-    <button id="submit" class="sniff-btn" type="submit"><span>SNIFF&nbsp;IT!&nbsp;🔎</span></button>
+    <button id="submit" class="sniff-btn" type="submit"><span>SNIFF IT! 🔎</span></button>
   </form>
   <div id="status" class="status hidden"><span id="statusText"></span></div>
 </section>
@@ -57,8 +66,8 @@
   <div class="result-head">
     <span class="eyebrow">▶ HASIL SNIFF</span>
     <div class="result-actions">
-      <button id="copy" class="small-btn s-cyan">SALIN 📋</button>
-      <button id="clear" class="small-btn s-orange">BERSIHKAN 🧹</button>
+      <button id="copy" class="small-btn c1">SALIN 📋</button>
+      <button id="clear" class="small-btn c2">BERSIHKAN 🧹</button>
     </div>
   </div>
   <div class="crt">
@@ -66,6 +75,27 @@
     <pre id="result"></pre>
     <div class="wm-bar">DIOLÉH&nbsp;OLEH&nbsp;→&nbsp;<a class="wm" href="https://t.me/BleackCoderr" target="_blank" rel="noopener">@BleackCoderr&nbsp;✦</a></div>
   </div>
+</section>
+
+<section class="privacy-wrap"><div class="privacy">🔒 FILE LU NGGAK DISIMPEN — DIPROSES LALU HILANG. PRIVASI AMAN.</div></section>
+
+<section class="howto">
+  <div class="step"><span class="n">1</span><h3>SERET FILE</h3><p>Tarik file config (.hc, .ehi, dll) ke kotak mesin sniff.</p></div>
+  <div class="step"><span class="n">2</span><h3>KLIK SNIFF</h3><p>Format ke-deteksi otomatis. Nunggu sebentar, mesin ngunyah.</p></div>
+  <div class="step"><span class="n">3</span><h3>SALIN HASIL</h3><p>Isi config muncul mentah & rapi. Tinggal salin, beres.</p></div>
+</section>
+
+<section class="faq">
+  <h2>Frequently Asked (versi sobris) ❓</h2>
+  <details><summary>Format apa aja yang didukung?</summary><p>.HC (HTTP Custom), .EHI (HTTP Injector), .SSC (SSC Custom), .NPV / .NPVT (NPV Tunnel), dan .DARK / darktunnel:// (Dark Tunnel). Ekstensi cuma petunjuk — kalau salah nama file, mesin tetap nyoba semua format.</p></details>
+  <details><summary>Apakah fileku aman?</summary><p>File cuma diproses di memori server lalu dibuang — nggak disimpan, nggak dilog, nggak dikirim ke mana-mana. Statistik hanya menghitung jumlah, bukan isinya.</p></details>
+  <details><summary>Kenapa ada config yang gagal di-sniff?</summary><p>Beberapa config pakai proteksi HWID/password atau versi enkripsi yang lebih baru dari database key kami. Kalau gagal, chat <a href="https://t.me/BleackCoderr" target="_blank">@BleackCoderr</a> buat request dukungan format.</p></details>
+  <details><summary>Bisa dipakai buat apa?</summary><p>Buat audit config sendiri, belajar struktur payload, konversi antar-aplikasi, atau sekadar penasaran isinya apa. Gunakan secara bijak & bertanggung jawab.</p></details>
+</section>
+
+<section class="share">
+  <a class="wa" href="https://wa.me/?text=Sniff%20config%20%2Ehc%20%2Eehi%20%2Enpv%20online%20gratis%20di%20sini%20%F0%9F%90%B4%20https%3A%2F%2Fgithub.com%2FFachriHdyt139%2Fsniffconfig" target="_blank" rel="noopener">SHARE KE WA ↗</a>
+  <a class="tg" href="https://t.me/share/url?url=https://github.com/FachriHdyt139/sniffconfig&text=Tool%20sniff%20config%20online%20gratis%20%F0%9F%90%B4" target="_blank" rel="noopener">SHARE KE TELEGRAM ↗</a>
 </section>
 </main>
 
@@ -77,12 +107,22 @@
 <footer>
   <div class="check-strip"></div>
   <div class="foot-inner">
-    <span>© 2026 SNIFF CONFIG — NEO-BRUTALIST EDITION</span>
+    <span>© 2026 SNIFF CONFIG — by @BleackCoderr</span>
     <a href="https://t.me/BleackCoderr" target="_blank" rel="noopener">✦ @BleackCoderr</a>
   </div>
 </footer>
 
 <script>
+/* tema gelap/terang — nyimpen pilihan di browser */
+const html=document.documentElement, tbtn=document.getElementById("themeBtn");
+function setTheme(t){html.setAttribute("data-theme",t);tbtn.textContent=t==="dark"?"☀️":"🌙";
+  document.querySelector('meta[name="theme-color"]').content=t==="dark"?"#16171A":"#F2EDDF";
+  try{localStorage.setItem("sniff-theme",t)}catch(e){}}
+setTheme((()=>{try{return localStorage.getItem("sniff-theme")}catch(e){return null}})()
+  ||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+tbtn.onclick=()=>setTheme(html.getAttribute("data-theme")==="dark"?"light":"dark");
+
+/* mesin sniff */
 const form=document.getElementById("form"), input=document.getElementById("file"), zone=document.getElementById("dropzone");
 const nameEl=document.getElementById("fileName"), submit=document.getElementById("submit"), status=document.getElementById("status");
 const statusText=document.getElementById("statusText"), box=document.getElementById("resultBox"), result=document.getElementById("result");
@@ -92,7 +132,8 @@ input.addEventListener("change",()=>setFile(input.files[0]));
 ["dragenter","dragover"].forEach(x=>zone.addEventListener(x,e=>{e.preventDefault();zone.classList.add("active")}));
 ["dragleave","drop"].forEach(x=>zone.addEventListener(x,e=>{e.preventDefault();zone.classList.remove("active")}));
 zone.addEventListener("drop",e=>setFile(e.dataTransfer.files[0]));
-function msg(t,ok){status.className="status "+(ok?"success":"error");statusText.textContent=t;led.textContent=ok?"OK!":"ERR!";led.className="led "+(ok?"ok":"err")}
+function msg(t,ok){status.className="status "+(ok?"success":"error");statusText.textContent=t;
+  led.textContent=ok?"OK!":"ERR!";led.className="led"+(ok?"":" err")}
 form.addEventListener("submit",async e=>{
  e.preventDefault();const f=input.files[0];if(!f){msg("⚠ FILE BELUM DIPILIH NIH",false);return}
  submit.disabled=true;submit.innerHTML="<span>NGUNYAH&nbsp;…</span>";box.className="result-wrap hidden";msg("MEMBACA "+f.name,true);
