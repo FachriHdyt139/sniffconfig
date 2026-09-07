@@ -10,7 +10,7 @@ OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
 BOT_VERSION = "v2.1-grupdiam"
 STARTED = False
-WATERMARK = "\n\n🐴 SNIFF CONFIG — dioléh oléh @BleackCoderr ✦\n🌐 https://sniffconfig.onrender.com"
+WATERMARK = "\n\n🐴 SNIFF CONFIG — diolah oleh @BleackCoderr ✦\n🌐 https://sniffconfig.onrender.com"
 
 EMOJI = {"HC": "🐴", "EHI": "💉", "SSC": "🔐", "NPVT": "🛰️", "DARK": "🌑"}
 FACTS = [
