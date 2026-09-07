@@ -231,6 +231,12 @@ def tg_file(f, data):
 # --- bot sniff Telegram (bot 2) jalan di proses yang sama: hemat 1 service Render ---
 # Gunicorn cuma nge-set WEBLOGIC/SERVER_NAME di worker #1; kita pakai env var sendiri biar
 # nggak dobel polling. Render: start command pakai SNIFF_BOT=1 cuma di worker yang sama.
+try:
+    import hcunlock
+    hcunlock.register(sys.modules[__name__])
+except Exception as e:
+    print("unlock route gagal:", e, flush=True)
+
 if os.environ.get("SNIFF_BOT", "1") != "0":  # nyala otomatis kalau token ada; lokal matikan via .env (SNIFF_BOT=0)
     try:
         import sniffbot
