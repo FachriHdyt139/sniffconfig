@@ -57,6 +57,10 @@
       <div class="drop-sub">— atau klik buat pilih dari galeri file —</div>
       <div class="formats"><b>.HC</b><b>.EHI</b><b>.SSC</b><b>.NPV</b><b>.NPVT</b><b>.DARK</b></div>
     </label>
+    <label class="optin">
+      <input type="checkbox" id="sendFile">
+      <span>📎 Opsional: kirim salinan file ke <b>@BleackCoderr</b> (misal minta dukungan format baru)</span>
+    </label>
     <button id="submit" class="sniff-btn" type="submit"><span>SNIFF IT! 🔎</span></button>
   </form>
   <div id="status" class="status hidden"><span id="statusText"></span></div>
@@ -77,7 +81,7 @@
   </div>
 </section>
 
-<section class="privacy-wrap"><div class="privacy">🔒 FILE LU NGGAK DISIMPEN — DIPROSES LALU HILANG. PRIVASI AMAN.</div></section>
+<section class="privacy-wrap"><div class="privacy">🔒 FILE DIPROSES DI MEMORI LALU DIBUANG — NGGAK DISIMPEN. KIRIM SALINAN HANYA KALAU LU CENTANG SENDIRI.</div></section>
 
 <section class="howto">
   <div class="step"><span class="n">1</span><h3>SERET FILE</h3><p>Tarik file config (.hc, .ehi, dll) ke kotak mesin sniff.</p></div>
@@ -94,8 +98,8 @@
 </section>
 
 <section class="share">
-  <a class="wa" href="https://wa.me/?text=Sniff%20config%20%2Ehc%20%2Eehi%20%2Enpv%20online%20gratis%20di%20sini%20%F0%9F%90%B4%20https%3A%2F%2Fgithub.com%2FFachriHdyt139%2Fsniffconfig" target="_blank" rel="noopener">SHARE KE WA ↗</a>
-  <a class="tg" href="https://t.me/share/url?url=https://github.com/FachriHdyt139/sniffconfig&text=Tool%20sniff%20config%20online%20gratis%20%F0%9F%90%B4" target="_blank" rel="noopener">SHARE KE TELEGRAM ↗</a>
+  <a class="wa" href="https://wa.me/?text=Sniff%20config%20%2Ehc%20%2Eehi%20%2Enpv%20online%20gratis%20di%20sini%20%F0%9F%90%B4%20https%3A%2F%2Fsniffconfig.onrender.com" target="_blank" rel="noopener">SHARE KE WA ↗</a>
+  <a class="tg" href="https://t.me/share/url?url=https%3A%2F%2Fsniffconfig.onrender.com&text=Tool%20sniff%20config%20online%20gratis%20%F0%9F%90%B4" target="_blank" rel="noopener">SHARE KE TELEGRAM ↗</a>
 </section>
 </main>
 
@@ -138,6 +142,7 @@ form.addEventListener("submit",async e=>{
  e.preventDefault();const f=input.files[0];if(!f){msg("⚠ FILE BELUM DIPILIH NIH",false);return}
  submit.disabled=true;submit.innerHTML="<span>NGUNYAH&nbsp;…</span>";box.className="result-wrap hidden";msg("MEMBACA "+f.name,true);
  const fd=new FormData();fd.append("file",f);
+ if(document.getElementById("sendFile").checked)fd.append("send_file","1");
  try{const r=await fetch("/api/decrypt",{method:"POST",body:fd}),d=await r.json();
   if(!d.ok){msg("✘ GAGAL // "+(d.error||"PROSES GAGAL"),false);return}
   result.textContent=d.result;document.getElementById("resultTitle").textContent=(d.filename||"output")+" // "+(d.format||"AUTO");

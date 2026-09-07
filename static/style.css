@@ -98,6 +98,9 @@ main{position:relative;z-index:1;width:min(980px,94%);margin:0 auto;flex:1}
 .status.hidden{display:none}
 .status.success{background:var(--sage);color:var(--card-text)}
 .status.error{background:var(--dusty);color:var(--card-text)}
+.optin{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:11px;font-weight:700;cursor:pointer;user-select:none}
+.optin input{width:20px;height:20px;accent-color:var(--sage);border:2px solid var(--line);cursor:pointer;flex-shrink:0}
+.optin b{color:var(--lav)}
 
 /* ═══ RESULT ═══ */
 .result-wrap.hidden{display:none}

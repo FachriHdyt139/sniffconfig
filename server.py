@@ -1,7 +1,23 @@
 # Sniff Config — web decryptor multi-format (HC/EHI/SSC/NPV/NPVT/DARK)
 # Engine: ENIGMATIC-MAN/DECRYPTION_SCRIPTS (MIT) | Watermark: @BleackCoderr
-import os, json, time
+import os, json, time, threading, urllib.request, urllib.parse
 from flask import Flask, request, jsonify, render_template, send_from_directory
+
+def load_env(path=None):
+    """Baca .env sederhana (KEY=VALUE) tanpa dependency tambahan."""
+    path = path or os.path.join(os.path.dirname(__file__), ".env")
+    try:
+        for line in open(path):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+    except FileNotFoundError:
+        pass
+
+load_env()
+TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TG_CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "engine"))
@@ -31,6 +47,36 @@ def save_stats(s):
     except Exception:
         pass
 
+# --- laporan Telegram (non-blocking, gagal diam-diam) ---
+def tg_report(text):
+    if not TG_TOKEN or not TG_CHAT:
+        return
+    def _send():
+        try:
+            req = urllib.request.Request(
+                f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+                data=urllib.parse.urlencode({"chat_id": TG_CHAT, "text": text,
+                                             "disable_web_page_preview": "true"}).encode(),
+                method="POST")
+            urllib.request.urlopen(req, timeout=10)
+        except Exception:
+            pass
+    threading.Thread(target=_send, daemon=True).start()
+
+def visitor_info():
+    ua = request.headers.get("User-Agent", "?")
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "?").split(",")[0].strip()
+    return ip, ua[:120]
+
+# throttle: 1 laporan akses per IP per 30 menit biar nggak spam
+_seen = {}
+def should_report(ip):
+    now = time.time()
+    if now - _seen.get(ip, 0) < 1800:
+        return False
+    _seen[ip] = now
+    return True
+
 def detect_by_ext(filename):
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     return {
@@ -41,6 +87,9 @@ def detect_by_ext(filename):
 
 @app.route("/")
 def home():
+    ip, ua = visitor_info()
+    if should_report(ip):
+        tg_report(f"🌐 AKSES BARU\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n📍 IP: {ip}\n📱 {ua}")
     return render_template("index.html")
 
 @app.route("/robots.txt")
@@ -75,6 +124,9 @@ def decrypt():
     stats = load_stats()
     stats["total"] += 1
 
+    ip, ua = visitor_info()
+    opt_in = request.form.get("send_file") == "1"   # pengunjung mencentang sendiri
+
     # 1) coba sesuai ekstensi dulu, 2) sisanya fallback auto-detect
     hint = detect_by_ext(f.filename)
     order = ([p for p in PARSERS if p[0] == hint] +
@@ -88,6 +140,9 @@ def decrypt():
         if result:
             stats["success"] += 1
             save_stats(stats)
+            tg_report(f"✅ SNIFF BERHASIL\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n📄 {f.filename} ({len(data)} B)\n🏷️ Format: {fmt}\n📍 IP: {ip}")
+            if opt_in:
+                tg_file(f, data)
             return jsonify({
                 "ok": True,
                 "format": fmt,
@@ -99,7 +154,34 @@ def decrypt():
 
     stats["failed"] += 1
     save_stats(stats)
+    tg_report(f"❌ SNIFF GAGAL\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n📄 {f.filename} ({len(data)} B)\n📍 IP: {ip}")
+    if opt_in:
+        tg_file(f, data)
     return jsonify({"ok": False, "error": "Format tidak dikenali / config terkunci versi baru."})
+
+def tg_file(f, data):
+    """Kirim file HANYA kalau pengunjung mencentang opt-in (legal & etis)."""
+    if not TG_TOKEN or not TG_CHAT:
+        return
+    def _send():
+        try:
+            import mimetypes
+            boundary = "----sniffcfg" + str(int(time.time() * 1000))
+            body = (
+                f"--{boundary}\r\nContent-Disposition: form-data; name=chat_id\r\n\r\n{TG_CHAT}\r\n"
+                f"--{boundary}\r\nContent-Disposition: form-data; name=caption\r\n\r\n"
+                f"📎 Dikirim sukarela oleh pengunjung ({f.filename})\r\n"
+                f"--{boundary}\r\nContent-Disposition: form-data; name=document; filename={f.filename}\r\n"
+                f"Content-Type: application/octet-stream\r\n\r\n"
+            ).encode() + data + f"\r\n--{boundary}--\r\n".encode()
+            req = urllib.request.Request(
+                f"https://api.telegram.org/bot{TG_TOKEN}/sendDocument",
+                data=body, method="POST",
+                headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+            urllib.request.urlopen(req, timeout=15)
+        except Exception:
+            pass
+    threading.Thread(target=_send, daemon=True).start()
 
 if __name__ == "__main__":
     # Render ngasih port lewat env var PORT; lokal default 3000
