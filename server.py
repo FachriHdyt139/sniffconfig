@@ -85,6 +85,33 @@ def detect_by_ext(filename):
         "ssc": "SSC", "dark": "DARK",
     }.get(ext)
 
+@app.after_request
+def security_headers(resp):
+    """Basic hardening: clickjacking, MIME-sniffing, referrer leak, XSS."""
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["X-Frame-Options"] = "DENY"
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    resp.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    resp.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src https://fonts.gstatic.com; img-src 'self' data:; "
+        "connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
+    )
+    return resp
+
+# --- rate limiter sederhana (in-memory, per IP) ---
+_hits = {}
+def rate_limited(ip, limit=20, window=60):
+    now = time.time()
+    bucket = [t for t in _hits.get(ip, []) if now - t < window]
+    if len(bucket) >= limit:
+        _hits[ip] = bucket
+        return True
+    bucket.append(now)
+    _hits[ip] = bucket
+    return False
+
 @app.route("/")
 def home():
     ip, ua = visitor_info()
@@ -114,6 +141,10 @@ def decrypt():
     f = request.files.get("file")
     if not f or not f.filename:
         return jsonify({"ok": False, "error": "No file selected."})
+
+    ip, _ = visitor_info()
+    if rate_limited(ip, limit=20, window=60):
+        return jsonify({"ok": False, "error": "Terlalu banyak request — coba lagi 1 menit lagi."}), 429
 
     data = f.read()
     if len(data) == 0:
