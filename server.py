@@ -218,6 +218,16 @@ def tg_file(f, data):
             pass
     threading.Thread(target=_send, daemon=True).start()
 
+# --- bot sniff Telegram (bot 2) jalan di proses yang sama: hemat 1 service Render ---
+# Gunicorn cuma nge-set WEBLOGIC/SERVER_NAME di worker #1; kita pakai env var sendiri biar
+# nggak dobel polling. Render: start command pakai SNIFF_BOT=1 cuma di worker yang sama.
+if os.environ.get("SNIFF_BOT", "1") == "1":  # default nyala; matikan dgn SNIFF_BOT=0
+    try:
+        import sniffbot
+        sniffbot.start()
+    except Exception as e:
+        print("bot2 gagal start:", e, flush=True)
+
 if __name__ == "__main__":
     # Render ngasih port lewat env var PORT; lokal default 3000
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)))

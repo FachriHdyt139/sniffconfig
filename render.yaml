@@ -4,5 +4,5 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT --timeout 120
+    startCommand: SNIFF_BOT=1 gunicorn server:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     healthCheckPath: /api/stats
