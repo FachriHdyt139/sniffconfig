@@ -8,6 +8,7 @@ BOT2_TOKEN = os.environ.get("SNIFF_BOT_TOKEN", "")
 OWNER_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
+BOT_VERSION = "v2.1-grupdiam"
 STARTED = False
 WATERMARK = "\n\n🐴 SNIFF CONFIG — dioléh oléh @BleackCoderr ✦\n🌐 https://sniffconfig.onrender.com"
 
@@ -141,7 +142,11 @@ def _handle(msg):
 
     doc = msg.get("document")
     if not doc:
-        _send(chat_id, "🤔 Kirim <b>file config</b> ya — bukan teks.\nFormat: .hc .ehi .ssc .npv .npvt .dark"); return
+        # di GRUP: text biasa -> diam aja (sopan, nggak ganggu obrolan)
+        # chat PRIBADI: kasih petunjuk
+        if msg["chat"].get("type") == "private":
+            _send(chat_id, "🤔 Kirim <b>file config</b> ya — bukan teks.\nFormat: .hc .ehi .ssc .npv .npvt .dark"); return
+        return
 
     wait = _cool(uid)
     if wait:

@@ -140,7 +140,7 @@ def stats():
 def botstatus():
     try:
         import sniffbot as sb
-        return jsonify({"token_present": bool(sb.BOT2_TOKEN),
+        return jsonify({"bot_version": getattr(sb, "BOT_VERSION", "?"), "token_present": bool(sb.BOT2_TOKEN),
                         "started": bool(getattr(sb, "STARTED", False)),
                         "active_cooldowns": len(sb._last)})
     except Exception as e:
