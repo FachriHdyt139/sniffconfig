@@ -1,0 +1,89 @@
+/* Sniff Config — terminal hacker theme | @BleackCoderr */
+:root{
+  --bg:#070b09; --panel:#0b120e; --line:#16281d; --green:#3ddc84; --dim:#7fa88f;
+  --text:#d7e8dc; --err:#ff5c5c; --mono:'JetBrains Mono','Fira Code',Consolas,'Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;display:flex;flex-direction:column}
+.noise{position:fixed;inset:0;pointer-events:none;opacity:.05;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+.grid{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:42px 42px;mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%)}
+main{position:relative;z-index:1;flex:1;width:min(920px,92%);margin:0 auto}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 5%;background:rgba(7,11,9,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);font-size:13px}
+.prompt{color:var(--green)} .colon{color:var(--dim)} .cursor{color:var(--green);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.tg-link{color:var(--green);text-decoration:none;border:1px solid var(--line);padding:5px 12px;border-radius:6px;
+  background:rgba(61,220,132,.06);transition:.2s}
+.tg-link:hover{background:rgba(61,220,132,.18);box-shadow:0 0 14px rgba(61,220,132,.35)}
+
+/* hero */
+.eyebrow{color:var(--dim);letter-spacing:.22em;font-size:11px;margin:26px 0 12px}
+.hero-card{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  background:radial-gradient(120% 140% at 80% -20%,rgba(61,220,132,.16),transparent 55%),var(--panel);padding:34px 26px}
+.hero-kicker{color:var(--green);font-size:11px;letter-spacing:.3em}
+.hero-title h1{font-size:clamp(30px,6vw,52px);letter-spacing:.04em;margin:8px 0}
+.hero-title h1 span{color:var(--green);text-shadow:0 0 22px rgba(61,220,132,.55)}
+.hero-title p{color:var(--dim);font-size:13px;max-width:52ch}
+.hero-caption{position:absolute;right:18px;bottom:14px;color:var(--dim);font-size:10px;letter-spacing:.18em}
+
+/* stats */
+.quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.quick-stats div{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px;text-align:center}
+.quick-stats b{display:block;color:var(--green);font-size:24px}
+.quick-stats span{color:var(--dim);font-size:10px;letter-spacing:.2em}
+
+/* terminal */
+.terminal{border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden;margin-bottom:18px}
+.terminal-head{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);
+  font-size:11px;color:var(--dim);background:rgba(255,255,255,.015)}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:#2a3a2f}
+.dots i:nth-child(1){background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.terminal-tag{margin-left:auto;color:var(--green);letter-spacing:.15em}
+
+/* dropzone */
+#form{padding:18px}
+.dropzone{display:block;border:1.5px dashed var(--line);border-radius:10px;padding:34px 18px;text-align:center;cursor:pointer;transition:.2s}
+.dropzone:hover,.dropzone.active{border-color:var(--green);background:rgba(61,220,132,.05)}
+.upload-icon{font-size:30px;color:var(--green);margin-bottom:8px}
+.drop-title{font-size:13px;letter-spacing:.08em}
+.drop-title.selected{color:var(--green);word-break:break-all}
+.drop-sub{color:var(--dim);font-size:11px;margin-top:6px}
+.formats{margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.formats b{font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:3px 8px}
+.sniff-btn{display:block;width:100%;margin-top:16px;padding:14px;border:0;border-radius:10px;cursor:pointer;
+  font-family:var(--mono);font-size:14px;letter-spacing:.25em;color:#04170c;font-weight:700;
+  background:linear-gradient(90deg,var(--green),#2bbf6f);transition:.2s}
+.sniff-btn:hover{filter:brightness(1.12);box-shadow:0 0 24px rgba(61,220,132,.4)}
+.sniff-btn:disabled{opacity:.55;cursor:wait}
+
+/* status */
+.status{margin:0 18px 18px;padding:10px 12px;border-radius:8px;font-size:12px;letter-spacing:.06em;border:1px solid}
+.status.hidden{display:none}
+.status.success{color:var(--green);border-color:rgba(61,220,132,.35);background:rgba(61,220,132,.07)}
+.status.error{color:var(--err);border-color:rgba(255,92,92,.35);background:rgba(255,92,92,.07)}
+
+/* result */
+.result-wrap.hidden{display:none}
+.result-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.result-actions{display:flex;gap:8px}
+.small-btn{font-family:var(--mono);font-size:11px;color:var(--dim);background:transparent;border:1px solid var(--line);
+  border-radius:6px;padding:6px 12px;cursor:pointer;transition:.2s}
+.small-btn:hover{color:var(--green);border-color:var(--green)}
+.output-terminal pre{padding:16px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;
+  max-height:520px;overflow:auto;color:#cfe9d6}
+.wm-bar{border-top:1px solid var(--line);padding:10px 16px;text-align:center;background:rgba(61,220,132,.04)}
+.wm{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.12em;transition:.2s}
+.wm:hover{text-shadow:0 0 16px rgba(61,220,132,.8)}
+
+/* footer */
+footer{position:relative;z-index:1;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  border-top:1px solid var(--line);margin-top:26px;padding:18px 5%;font-size:11px;color:var(--dim)}
+footer a{color:var(--green);text-decoration:none}
+footer a:hover{text-decoration:underline}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#1c2f24;border-radius:6px}

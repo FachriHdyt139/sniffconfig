@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070b09">
+<title>🐴 Sniff Config — @BleackCoderr</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="noise"></div><div class="grid"></div>
+<header class="topbar">
+  <div><span class="prompt">sniff@bleackcoderr</span><span class="colon">:</span><span>~</span><span class="cursor">_</span></div>
+  <a class="tg-link" href="https://t.me/BleackCoderr" target="_blank" rel="noopener">@BleackCoderr</a>
+</header>
+<main>
+<section class="hero">
+  <div class="eyebrow">CONFIG ANALYSIS SYSTEM // v1.0</div>
+  <div class="hero-card">
+    <div class="hero-overlay"></div>
+    <div class="hero-title">
+      <div class="hero-kicker">CONFIG ANALYSIS</div>
+      <h1>SNIFF <span>CONFIG</span></h1>
+      <p>Analisis konfigurasi yang didukung dan tampilkan hasilnya secara langsung.</p>
+    </div>
+    <div class="hero-caption">TECHNICAL PROCESSING • LOCAL OUTPUT</div>
+  </div>
+
+  <div class="quick-stats">
+    <div><b id="myTotal">0</b><span>TOTAL</span></div>
+    <div><b id="mySuccess">0</b><span>BERHASIL</span></div>
+    <div><b id="myFailed">0</b><span>GAGAL</span></div>
+  </div>
+
+  <div class="terminal">
+    <div class="terminal-head"><div class="dots"><i></i><i></i><i></i></div><div>sniff@bleackcoderr</div><div class="terminal-tag">READY</div></div>
+    <form id="form">
+      <label class="dropzone" id="dropzone">
+        <input id="file" type="file" hidden>
+        <div class="upload-icon">⌁</div>
+        <div class="drop-title" id="fileName">SERET FILE KONFIGURASI DI SINI</div>
+        <div class="drop-sub">atau klik untuk memilih dari penyimpanan lokal</div>
+        <div class="formats"><b>.HC</b><b>.EHI</b><b>.SSC</b><b>.NPV</b><b>.NPVT</b><b>.DARK</b></div>
+      </label>
+      <button id="submit" class="sniff-btn" type="submit"><span>SNIFF</span></button>
+    </form>
+    <div id="status" class="status hidden"><span class="mark">[+]</span> <span id="statusText"></span></div>
+  </div>
+</section>
+
+<section id="resultBox" class="result-wrap hidden">
+  <div class="result-head"><div><span class="eyebrow">OUTPUT</span></div>
+  <div class="result-actions"><button id="copy" class="small-btn">SALIN</button><button id="clear" class="small-btn">BERSIHKAN</button></div></div>
+  <div class="terminal output-terminal">
+    <div class="terminal-head"><div class="dots"><i></i><i></i><i></i></div><div id="resultTitle">output.log</div><div class="terminal-tag">READ ONLY</div></div>
+    <pre id="result"></pre>
+    <div class="wm-bar"><a class="wm" href="https://t.me/BleackCoderr" target="_blank" rel="noopener">⚡ @BleackCoderr</a></div>
+  </div>
+</section>
+</main>
+<footer>
+  <div><span>SNIFF CONFIG</span><br><span>LOCAL PROCESSOR • PRIVATE OUTPUT</span></div>
+  <div><a href="https://t.me/BleackCoderr" target="_blank" rel="noopener">© 2026 @BleackCoderr</a></div>
+</footer>
+<script>
+const form=document.getElementById("form"), input=document.getElementById("file"), zone=document.getElementById("dropzone");
+const nameEl=document.getElementById("fileName"), submit=document.getElementById("submit"), status=document.getElementById("status");
+const statusText=document.getElementById("statusText"), box=document.getElementById("resultBox"), result=document.getElementById("result");
+function setFile(f){if(!f)return;const d=new DataTransfer();d.items.add(f);input.files=d.files;nameEl.textContent=f.name;nameEl.classList.add("selected")}
+input.addEventListener("change",()=>setFile(input.files[0]));
+["dragenter","dragover"].forEach(x=>zone.addEventListener(x,e=>{e.preventDefault();zone.classList.add("active")}));
+["dragleave","drop"].forEach(x=>zone.addEventListener(x,e=>{e.preventDefault();zone.classList.remove("active")}));
+zone.addEventListener("drop",e=>setFile(e.dataTransfer.files[0]));
+function msg(t,ok){status.className="status "+(ok?"success":"error");statusText.textContent=t}
+form.addEventListener("submit",async e=>{
+ e.preventDefault();const f=input.files[0];if(!f){msg("TIDAK ADA FILE YANG DIPILIH",false);return}
+ submit.disabled=true;submit.innerHTML="<span>MEMPROSES</span><span>…</span>";box.className="result-wrap hidden";msg("MEMBACA "+f.name,true);
+ const fd=new FormData();fd.append("file",f);
+ try{const r=await fetch("/api/decrypt",{method:"POST",body:fd}),d=await r.json();
+  if(!d.ok){msg("GAGAL // "+(d.error||"PROSES GAGAL"),false);return}
+  result.textContent=d.result;document.getElementById("resultTitle").textContent=(d.filename||"output")+" // "+(d.format||"AUTO");
+  box.className="result-wrap";msg("SELESAI // "+d.format+" TERDETEKSI",true);loadStats();box.scrollIntoView({behavior:"smooth"});
+ }catch(err){msg("SERVER TIDAK DAPAT DIJANGKAU",false)}
+ finally{submit.disabled=false;submit.innerHTML="<span>SNIFF</span>"}
+});
+document.getElementById("copy").onclick=async()=>{
+ const text=result.textContent+"\n\n— @BleackCoderr (https://t.me/BleackCoderr)";
+ try{await navigator.clipboard.writeText(text)}catch(e){
+  const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+ }
+ const b=document.getElementById("copy");b.textContent="TERSALIN";setTimeout(()=>b.textContent="SALIN",1000)
+};
+async function loadStats(){try{const r=await fetch("/api/stats");const d=await r.json();document.getElementById("myTotal").textContent=d.total;document.getElementById("mySuccess").textContent=d.success;document.getElementById("myFailed").textContent=d.failed}catch(e){}}
+loadStats();
+document.getElementById("clear").onclick=()=>{result.textContent="";box.className="result-wrap hidden";status.className="status hidden";input.value="";nameEl.textContent="SERET FILE KONFIGURASI DI SINI";nameEl.classList.remove("selected")};
+</script>
+</body>
+</html>

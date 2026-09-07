@@ -1,0 +1,5 @@
+flask>=3.0
+gunicorn>=21.2
+pycryptodome>=3.19
+argon2-cffi>=21.3
+msgpack>=1.0
