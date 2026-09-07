@@ -154,7 +154,11 @@ def decrypt():
 
     stats["failed"] += 1
     save_stats(stats)
-    tg_report(f"❌ SNIFF GAGAL\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n📄 {f.filename} ({len(data)} B)\n📍 IP: {ip}")
+    # Tanda kegagalan: hash (tak bisa dibalik) + ukuran + tahap gagal. TANPA isi file.
+    import hashlib
+    sig = hashlib.sha256(data).hexdigest()[:12]
+    tried = ", ".join(fmt for fmt, _ in order)
+    tg_report(f"❌ SNIFF GAGAL (kemungkinan key berubah)\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n📄 {f.filename} ({len(data)} B)\n🔖 SHA256: {sig}…\n🧪 Dicoba: {tried}\n📍 IP: {ip}")
     if opt_in:
         tg_file(f, data)
     return jsonify({"ok": False, "error": "Format tidak dikenali / config terkunci versi baru."})
