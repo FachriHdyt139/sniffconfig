@@ -8,6 +8,7 @@ BOT2_TOKEN = os.environ.get("SNIFF_BOT_TOKEN", "")
 OWNER_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")   # bot 1 = laporan
 OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180  # 3 menit per chat id
+STARTED = False
 
 WATERMARK = "\n\n🐴 SNIFF CONFIG — dioléh oléh @BleackCoderr ✦\n🌐 https://sniffconfig.onrender.com"
 
@@ -15,7 +16,7 @@ def _api(token, method, **kw):
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{token}/{method}",
         data=urllib.parse.urlencode(kw).encode(), method="POST")
-    return json.load(urllib.request.urlopen(req, timeout=25))
+    return json.load(urllib.request.urlopen(req, timeout=35))
 
 def _multipart(token, method, fields, fname, fdata):
     b = "----sniffw" + str(int(time.time() * 1000))
@@ -28,13 +29,20 @@ def _multipart(token, method, fields, fname, fdata):
     req = urllib.request.Request(f"https://api.telegram.org/bot{token}/{method}",
                                  data=body, method="POST",
                                  headers={"Content-Type": f"multipart/form-data; boundary={b}"})
-    return json.load(urllib.request.urlopen(req, timeout=30))
+    return json.load(urllib.request.urlopen(req, timeout=35))
 
 def _send(chat_id, text):
     if not BOT2_TOKEN: return
     try:
-        _api(BOT2_TOKEN, "sendMessage", chat_id=chat_id, text=text,
-             disable_web_page_preview="true")
+        try:
+            _api(BOT2_TOKEN, "sendMessage", chat_id=chat_id, text=text,
+                 parse_mode="HTML", disable_web_page_preview="true")
+        except Exception:
+            # HTML rusak / nggak valid — kirim polos aja
+            import re
+            _api(BOT2_TOKEN, "sendMessage", chat_id=chat_id,
+                 text=re.sub(r"</?(b|i|code|a)[^>]*>", "", text),
+                 disable_web_page_preview="true")
     except Exception:
         pass
 
@@ -169,11 +177,25 @@ def _poll_loop():
         except Exception:
             time.sleep(5)
 
+def _keepalive_loop():
+    """Render free tier tidur kalau 15 menit sepi -> bot ikut mati.
+    Ngetok URL publik sendiri tiap 8 menit biar container selalu melek."""
+    url = os.environ.get("SELF_PING_URL", "https://sniffconfig.onrender.com/api/stats")
+    while True:
+        time.sleep(480)
+        try:
+            urllib.request.urlopen(url, timeout=15).read()
+        except Exception:
+            pass
+
 def start():
     """Panggil dari server.py. Diam-diam skip kalau token belum diisi."""
     if not BOT2_TOKEN:
         print("bot2: SNIFF_BOT_TOKEN kosong — dilewati", flush=True)
         return
+    global STARTED
+    threading.Thread(target=_keepalive_loop, daemon=True, name="keepalive").start()
     t = threading.Thread(target=_poll_loop, daemon=True, name="sniffbot")
     t.start()
-    print("bot2: thread sniff bot jalan ✅", flush=True)
+    STARTED = True
+    print("bot2: thread sniff bot + keepalive jalan ✅", flush=True)

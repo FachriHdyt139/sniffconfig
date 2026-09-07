@@ -136,6 +136,16 @@ def sitemap():
 def stats():
     return jsonify(load_stats())
 
+@app.route("/api/botstatus")
+def botstatus():
+    try:
+        import sniffbot as sb
+        return jsonify({"token_present": bool(sb.BOT2_TOKEN),
+                        "started": bool(getattr(sb, "STARTED", False)),
+                        "active_cooldowns": len(sb._last)})
+    except Exception as e:
+        return jsonify({"token_present": False, "started": False, "err": str(e)[:80]})
+
 @app.route("/api/decrypt", methods=["POST"])
 def decrypt():
     f = request.files.get("file")
@@ -221,7 +231,7 @@ def tg_file(f, data):
 # --- bot sniff Telegram (bot 2) jalan di proses yang sama: hemat 1 service Render ---
 # Gunicorn cuma nge-set WEBLOGIC/SERVER_NAME di worker #1; kita pakai env var sendiri biar
 # nggak dobel polling. Render: start command pakai SNIFF_BOT=1 cuma di worker yang sama.
-if os.environ.get("SNIFF_BOT", "0") == "1":  # default MATI; Render nyala krn Procfile set SNIFF_BOT=1
+if os.environ.get("SNIFF_BOT", "1") != "0":  # nyala otomatis kalau token ada; lokal matikan via .env (SNIFF_BOT=0)
     try:
         import sniffbot
         sniffbot.start()
