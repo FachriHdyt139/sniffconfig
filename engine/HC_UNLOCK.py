@@ -1,6 +1,7 @@
-# HC Unlocker v2 — re-encrypt hasil decrypt ke file .hc yang bisa di-import HTTP Custom
-# Prinsip: STRUKTUR JSON ASLI TIDAK DIUBAH. Hanya nilai xy (cipher token) yang diganti,
-# meta dibiarkan (nonce derivation app tetap konsisten), proteksi dimatikan di level token.
+# HC Unlocker v3 — STRATEGI BARU: "SURGICAL EDIT"
+# Jangan decrypt-reencrypt semua token. File asli = sumber kebenaran struktur.
+# Cuma: 1) decrypt xy lama utk baca field, 2) matikan proteksi, 3) RE-ENCRYPT CUMA FIELD
+# YANG BERUBAH, sisanya token MENTAH ASLI — posisi & jumlah token persis file asli.
 import base64, json
 
 STATIC_NONCE = b'\xdb' * 8
@@ -9,13 +10,11 @@ MAGIC = "88a05e8772eac3e5703e0cd26c6e6f23de72fb09f7ee5a43283d1681f19d"
 
 def _abc_encrypt(plaintext: str, key: bytes, nonce: bytes = STATIC_NONCE) -> str:
     from Crypto.Cipher import ChaCha20
-    data = plaintext.encode()
     cipher = ChaCha20.new(key=key, nonce=nonce)
     cipher.seek(64)
-    return (cipher.encrypt(data) + bytes(16)).hex()
+    return (cipher.encrypt(plaintext.encode()) + bytes(16)).hex()
 
 def _jkl_encrypt(plaintext: str) -> str:
-    """Kebalikan persis _jkl_decrypt(is_new=False): (roundtrip terverifikasi)."""
     inner = base64.b64encode(plaintext.encode()).decode()
     data = bytearray(inner.encode())
     import HTTPCUSTOM as HC
@@ -28,40 +27,27 @@ def _jkl_encrypt(plaintext: str) -> str:
     return base64.b64encode(bytes(out)).decode()
 
 def _rst_encrypt(hex_cipher: str) -> str:
-    """Balikan _rst_decrypt (varian v2.8+): XOR RST_XOR_KEY lalu base64."""
     import HTTPCUSTOM as HC
     data = bytes.fromhex(hex_cipher)
     out = bytes(b ^ HC.HCConstants.RST_XOR_KEY[i % len(HC.HCConstants.RST_XOR_KEY)]
                 for i, b in enumerate(data))
     return base64.b64encode(out).decode()
 
-def _unlock_cfg(config: dict) -> dict:
-    """Matikan semua proteksi di objek Config hasil decrypt."""
-    c = dict(config)
-    for k in ("lockAllConfig", "blockedByRoot", "blockedByHwid",
-              "blockedByPassword", "mobileDataAndLockProvider",
-              "blockArea"):
-        if k in c: c[k] = "false"
-    if "expiryTime" in c: c["expiryTime"] = "lifeTime"
-    c["notes"] = "🐴 UNLOCKED by @BleackCoderr\nhttps://sniffconfig.onrender.com"
-    c["noteEnabled"] = "true"
-    return c
-
-def _tokens_from_config(config: dict):
-    """Susun kembali daftar token urut TOKEN_MAP."""
-    import HTTPCUSTOM as HC
-    inv = {v: k for k, v in HC.HCConstants.TOKEN_MAP.items()}
-    tokens = {}
-    for name, val in config.items():
-        if name in inv and val not in (None, ""):
-            if isinstance(val, (dict, list)):
-                try: val = json.dumps(val, ensure_ascii=False)
-                except Exception: continue
-            tokens[inv[name]] = str(val)
-    return [tokens.get(i, "") for i in range(max(tokens.keys(), default=-1) + 1)]
+# field (index) yang kita ubah saat unlock + nilai barunya
+UNLOCK_VALUES = {
+    2:  "false",        # lockAllConfig
+    3:  "false",        # blockedByRoot
+    15: "false",        # blockedByHwid
+    21: "false",        # blockedByPassword
+    19: "false",        # blockArea
+    8:  "false",        # mobileDataAndLockProvider
+    4:  "lifeTime",     # expiryTime
+    5:  "true",         # noteEnabled
+    6:  "🐴 UNLOCKED by @BleackCoderr\nhttps://sniffconfig.onrender.com",  # notes
+}
 
 def unlock_hc(original_file: bytes) -> bytes:
-    """Input file .hc asli -> output .hc unlocked (import-able)."""
+    """Surgical: struktur & token asli dipertahankan, cuma field proteksi di-encrypt ulang."""
     import HTTPCUSTOM as HC
     d = HC.HCDecryptor
 
@@ -78,7 +64,7 @@ def unlock_hc(original_file: bytes) -> bytes:
     split = cfg_obj.get("split") if is_new else (a.get("uv") if "uv" in a else j.get("uv"))
     if not target or not split: raise ValueError("struktur file nggak dikenal")
 
-    # nonce dinamis dari meta ASLI (yang tidak kita sentuh)
+    # nonce dinamis dari meta asli
     meta = {}
     if is_new:
         for k, name in {'b': 'hwid', 'f': 'area'}.items():
@@ -97,8 +83,9 @@ def unlock_hc(original_file: bytes) -> bytes:
         try:
             for i, b in enumerate(bytes.fromhex(derived)[:8]): nonce[i] = b
         except Exception: pass
+    dyn = bytes(nonce)
 
-    # decrypt token2 (jalur engine)
+    # decrypt xy utk tahu field mana yang berubah (dan nama labelnya)
     if is_new:
         xy_dec = d._rst_decrypt(str(target))
         if not xy_dec:
@@ -108,45 +95,27 @@ def unlock_hc(original_file: bytes) -> bytes:
     else:
         xy_dec = d._abc_decrypt(str(target), HC.HCConstants.CHACHA_KEYS[1])
     if not xy_dec: raise ValueError("isi config nggak ke-decrypt")
+    tokens = xy_dec.split(str(split))
 
-    config = {}
-    for i, token in enumerate(xy_dec.split(str(split))):
-        if i in {22, 24}: continue
-        label = HC.HCConstants.TOKEN_MAP.get(i, f"field_{i}")
-        out = token
+    # SURGICAL: ubah cuma field target; re-encrypt dgn jalur yg SAMA dgn decrypt-nya
+    changed = 0
+    for i, tok in enumerate(tokens):
+        if i not in UNLOCK_VALUES: continue
+        new_plain = UNLOCK_VALUES[i]
         if is_new:
-            out = d._decrypt_field(token, bytes(nonce))
+            tokens[i] = d._encrypt_field(new_plain, dyn) if hasattr(d, "_encrypt_field") else \
+                        _abc_encrypt(new_plain, HC.HCConstants.CHACHA_KEYS[7], dyn)
         else:
-            if d._is_hex(token):
-                out = d._abc_decrypt(token, HC.HCConstants.CHACHA_KEYS[7], bytes(nonce))
-            out = d._jkl_decrypt(out, is_new=False)
-        if i == 7: out = d._process_credentials(out, is_ssh=True)
-        elif i == 11: out = d._process_credentials(out, is_ssh=False)
-        if out:
-            if isinstance(out, str):
-                out = out.replace(MAGIC, "")
-                try:
-                    if out.startswith(("{", "[")): out = json.loads(out)
-                except Exception: pass
-            if not (isinstance(out, str) and d._is_hex(out)):
-                config[label] = out
+            tokens[i] = _abc_encrypt(_jkl_encrypt(new_plain), HC.HCConstants.CHACHA_KEYS[7], dyn)
+        changed += 1
+    if not changed: raise ValueError("field proteksi nggak ketemu")
 
-    unlocked = _unlock_cfg(config)
-    tokens = _tokens_from_config(unlocked)
+    new_xy = str(split).join(tokens)
 
     if is_new:
-        # RST plaintext-nya hasil join token; lalu content di-encrypt abc(key7,nonce) -> rst
-        plain = str(split).join(tokens)
-        cfg_obj["content"] = _rst_encrypt(_abc_encrypt(plain, HC.HCConstants.CHACHA_KEYS[7], bytes(nonce)))
+        cfg_obj["content"] = _rst_encrypt(_abc_encrypt(new_xy, HC.HCConstants.CHACHA_KEYS[7], dyn))
         j["cfg"] = cfg_obj
     else:
-        # jalur lama: tiap token: plaintext -> jkl_encrypt -> abc_encrypt(key7, nonce)
-        enc = []
-        for tok in tokens:
-            t = str(tok).replace(MAGIC, "")
-            t = _abc_encrypt(_jkl_encrypt(t), HC.HCConstants.CHACHA_KEYS[7], bytes(nonce))
-            enc.append(t)
-        new_xy = str(split).join(enc)
         if "xy" in a:
             a["xy"] = _abc_encrypt(new_xy, HC.HCConstants.CHACHA_KEYS[1])
         elif "xy" in j:
@@ -154,7 +123,6 @@ def unlock_hc(original_file: bytes) -> bytes:
         else:
             raise ValueError("posisi xy nggak ketemu")
 
-    # KUNCI FIX: struktur JSON SAMA PERSIS dgn asli (kunci tidak ditambah/dihapus/dipindah)
     outer_json = json.dumps(j, ensure_ascii=False, separators=(",", ":"))
     hex_outer = _abc_encrypt(outer_json, HC.HCConstants.CHACHA_KEYS[5])
     key_bytes = bytes.fromhex(XOR_HEADER)
