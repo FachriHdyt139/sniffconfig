@@ -123,7 +123,8 @@ def unlock_hc(original_file: bytes) -> bytes:
         else:
             raise ValueError("posisi xy nggak ketemu")
 
-    outer_json = json.dumps(j, ensure_ascii=False, separators=(",", ":"))
+    # HC app menyimpan outer JSON dgn pretty-print (indent 2) — pertahankan format persis
+    outer_json = json.dumps(j, indent=2, ensure_ascii=False)
     hex_outer = _abc_encrypt(outer_json, HC.HCConstants.CHACHA_KEYS[5])
     key_bytes = bytes.fromhex(XOR_HEADER)
     # FORMAT FILE HC (terverifikasi roundtrip dgn file asli):
