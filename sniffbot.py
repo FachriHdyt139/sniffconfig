@@ -10,7 +10,7 @@ OWNER_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
 STARTED = False
-BOT_VERSION = "v3.2-anim"
+BOT_VERSION = "v4-plaintext-surgical"
 WATERMARK = "\n\n🐴 SNIFF CONFIG — diolah oleh @BleackCoderr ✦\n🌐 https://sniffconfig.onrender.com"
 WEB_URL = "https://sniffconfig.onrender.com"
 
