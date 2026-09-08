@@ -168,6 +168,10 @@ venv/bin/python server.py     # http://localhost:3000
 | Bot bales obrolan grup | Sudah difix di v2.1 (diam kecuali perintah/file) — pastikan versi `v2.1-grupdiam` via `/api/botstatus` |
 | Gagal sniff | Config dikunci versi baru → lapor format ke [@BleackCoderr](https://t.me/BleackCoderr) |
 
+> ℹ️ **Catatan v6:** fitur 🔓 UNLOCK .HC sudah DIHAPUS (app HTTP Custom terbaru memverifikasi
+> signature anti-tamper pada config terkunci, jadi file hasil unlock selalu ditolak app).
+> Bot tetap bisa MEMBACA/men-sniff semua format seperti biasa.
+
 ## 📁 Struktur Project
 
 ```

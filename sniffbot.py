@@ -10,7 +10,7 @@ OWNER_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
 STARTED = False
-BOT_VERSION = "v5-aead-real"
+BOT_VERSION = "v6-no-unlock"
 WATERMARK = "\n\n🐴 SNIFF CONFIG — diolah oleh @BleackCoderr ✦\n🌐 https://sniffconfig.onrender.com"
 WEB_URL = "https://sniffconfig.onrender.com"
 
@@ -34,7 +34,7 @@ def _f(name): return os.path.join(BASE_DIR, name)
 # ══════════ PERSISTEN DB (Render filesystem ephemeral!) ══════════
 # Semua state disimpan di 1 file botdata.json, di-backup ke chat owner (pesan PINNED).
 # Startup: restore dari pesan pinned. Tiap perubahan: tulis lokal + sync cloud (debounce).
-DB = {"sniffers": {}, "file_cache": {}, "extract_cache": {}, "subscribers": [], "events": [], "pin_id": None}
+DB = {"sniffers": {}, "extract_cache": {}, "subscribers": [], "events": [], "pin_id": None}
 _db_timer = None
 
 def _load_db():
@@ -234,9 +234,9 @@ def _smart(result):
             j = json.loads(m.group(0))
             cfg = j.get("Config", j)
             if str(cfg.get("blockedByHwid", "")).lower() == "true":
-                tips.append("🔐 Config ini DIKUNCI HWID — unlock dengan tombol 🔓 UNLOCK .HC")
+                tips.append("🔐 Config ini DIKUNCI HWID")
             if str(cfg.get("lockAllConfig", "")).lower() == "true":
-                tips.append("🔒 Semua bagian config dikunci — unlock dengan tombol 🔓")
+                tips.append("🔒 Semua bagian config dikunci")
             exp = str(cfg.get("expiryTime", ""))
             if exp and exp != "lifeTime" and exp.replace(".", "").isdigit():
                 try:
@@ -381,7 +381,6 @@ def _handle(msg):
     if text.startswith("/help"):
         _send(chat_id, "📖 <b>PANDUAN</b>\n\n📄 Kirim file config (dokumen) → hasil otomatis\n"
               "📋 Tombol EKSTRAK DATA → tap kotak = tersalin\n"
-              "🔓 Tombol UNLOCK .HC → file .hc bebas proteksi\n"
               "🏓 /cek user:pass@host:port → cek server SSH\n"
               "🎁 /random → config gratis\n👥 Di grup: hasil reply ke file kamu", TOOLS_ROW); return
     if text.startswith("/stats"):
@@ -452,7 +451,7 @@ def _handle(msg):
               f"{len(set(e['u'] for e in today))}\n⏰ Jam tersibuk: {busy}:00\n"
               f"🏷️ Format terpopuler: {', '.join(f'{k} ({v})' for k, v in fmt_top) or '-'}\n\n{bar}\n\n"
               f"📮 Subscriber broadcast: {len(DB.get('subscribers', []))}\n"
-              f"💾 Cache file: {len(DB.get('file_cache', {}))} | DB cloud: {'✅' if DB.get('pin_id') else 'belum'}"); return
+              f"💾 Cache hasil: {len(DB.get('extract_cache', {}))} | DB cloud: {'✅' if DB.get('pin_id') else 'belum'}"); return
     if text.startswith("/"):
         return
 
@@ -508,7 +507,6 @@ def _handle(msg):
         body = (f"{EMOJI.get(fmt, '✅')} <b>BERHASIL</b> — format {fmt}\n📄 {fname}\n"
                 f"🕐 {time.strftime('%d-%m-%Y %H:%M')}\n{'─' * 30}\n\n{result}\n\n{smart}" + WATERMARK)
         btns = [[{"text": "📋 EKSTRAK DATA", "callback_data": f"ex:{uid}"},
-                 {"text": "🔓 UNLOCK .HC", "callback_data": f"ul:{uid}"},
                  {"text": "🌐 WEB", "url": WEB_URL}]]
         # hasil reply ke file asli (orig_mid)
         png = _render_png(result)
@@ -530,15 +528,10 @@ def _handle(msg):
                            fname + ".sniffed.txt", body.encode(), reply_to=orig_mid)
             except Exception:
                 _send(chat_id, body[:3900], reply_to=orig_mid)
-        # cache: file asli + message_id file (buat reply export) + hasil extract
+        # cache: hasil extract + message_id file (buat reply export)
         ec = DB.get("extract_cache", {})
-        ec[str(uid)] = {"r": result[:20000], "t": time.time()}
+        ec[str(uid)] = {"r": result[:20000], "t": time.time(), "mid": orig_mid}
         _save("extract_cache", {k: v for k, v in list(ec.items())[-100:]})
-        if fmt == "HC":
-            fc = DB.get("file_cache", {})
-            fc[str(uid)] = {"b64": base64.b64encode(data).decode(), "name": fname,
-                            "mid": orig_mid, "t": time.time()}
-            _save("file_cache", {k: v for k, v in list(fc.items())[-100:]})
         _report_owner(f"🤖 BOT SNIFF ✔ [{BOT_VERSION}]\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n"
                       f"👤 {label} (id={uid})\n📄 {fname} ({len(data)} B)\n🏷️ {fmt}\n📍 {where}")
     else:
@@ -555,24 +548,6 @@ def _on_callback(cb):
     chat_id = cb.get("message", {}).get("chat", {}).get("id")
     try: _api(BOT2_TOKEN, "answerCallbackQuery", callback_query_id=cb["id"])
     except Exception: pass
-    if data.startswith("ul:") and chat_id:
-        fc = DB.get("file_cache", {})
-        hit = fc.get(uid)
-        if not hit:
-            _send(chat_id, "⌛ Cache file lu kedaluwarsa — kirim ulang file .hc-nya."); return
-        try:
-            import hcunlock
-            raw = base64.b64decode(hit["b64"])
-            out = hcunlock.unlock_hc_file(raw)
-            name = hit["name"].rsplit(".", 1)[0] + ".unlocked.hc"
-            _multipart("sendDocument",
-                       {"chat_id": chat_id,
-                        "caption": "🔓 UNLOCKED — proteksi mati, expiry lifeTime. Import langsung ke HTTP Custom.\n🐴 @BleackCoderr"},
-                       name, out, reply_to=hit.get("mid"))   # reply ke file asli
-            _report_owner(f"🔓 HC UNLOCKED\n👤 id={uid}\n📄 {hit['name']}")
-        except Exception as e:
-            _send(chat_id, f"❌ Unlock gagal: {e}\nCuma format .HC yang didukung saat ini."); return
-        return
     if data.startswith("ex:") and chat_id:
         ec = DB.get("extract_cache", {})
         hit = ec.get(uid)
