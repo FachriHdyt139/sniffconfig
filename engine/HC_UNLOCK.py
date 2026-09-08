@@ -126,8 +126,7 @@ def unlock_hc(original_file: bytes) -> bytes:
     outer_json = json.dumps(j, ensure_ascii=False, separators=(",", ":"))
     hex_outer = _abc_encrypt(outer_json, HC.HCConstants.CHACHA_KEYS[5])
     key_bytes = bytes.fromhex(XOR_HEADER)
+    # FORMAT FILE HC (terverifikasi roundtrip dgn file asli):
+    # file = utf8( latin1( XOR(hexstr) ) )  -> mojibake latin-1 -> utf-8 (2 byte utk char >0x7F)
     xored = bytes(b ^ key_bytes[i % len(key_bytes)] for i, b in enumerate(hex_outer.encode("utf-8")))
-    try:
-        return xored.decode("utf-8").encode("utf-8")
-    except UnicodeDecodeError:
-        return xored.decode("latin-1").encode("utf-8", errors="ignore")
+    return xored.decode("latin-1").encode("utf-8")
