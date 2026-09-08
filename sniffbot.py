@@ -24,7 +24,7 @@ OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
 STARTED = False
 BOOT_TIME = time.time()
-BOT_VERSION = "v7-rapi"
+BOT_VERSION = "v7-clean"
 WEB_URL = "https://sniffconfig.onrender.com"
 OWNER_TG = "https://t.me/BleackCoderr"
 BOT_LINK = "https://t.me/snifferBC_Bot"
@@ -738,14 +738,23 @@ def _handle(msg):
         ms = ""
         if e["count"] in MILESTONES:
             ms = f"\n🎉 {MILESTONES[e['count']]}"
-        cap = (f"{EMOJI.get(fmt, '✅')} <b>BERHASIL</b> — {fmt} | 🏅 {_level(e['count'])}"
-               f"{' | 🔥 streak ' + str(e['streak']) if e.get('streak', 0) > 1 else ''}\n"
-               f"{smart}\n⏱️ Diproses {timeinfo}{nxt_tip}{ms}\n{fact}")
-        body = (f"{EMOJI.get(fmt, '✅')} BERHASIL — format {fmt}\n📄 {fname}\n"
-                f"🕐 {time.strftime('%d-%m-%Y %H:%M')}\n{SEP}\n\n{result}\n\n{smart}\n\n"
+        # ── caption CLEAN ala kompetitor — detail pindah ke tombol ℹ️ DETAIL ──
+        cap = (f"✅ <b>Decrypted Successfully</b>\n\n"
+               f"👤 Requested by: {_h(label)}")
+        info_txt = (f"ℹ️ <b>DETAIL SNIFF</b>\n{SEP}\n\n"
+                    f"📄 <code>{_h(fname)}</code>  •  {_h(str(round(fsize / 1024, 1)))} KB\n"
+                    f"🏷️ Format: <b>{fmt}</b> {EMOJI.get(fmt, '')}\n"
+                    f"⏱️ Diproses {elapsed:.1f} detik\n{SEP}\n\n"
+                    f"{smart}\n\n"
+                    f"🏅 {_level(e['count'])} • {e['count']}x sniff"
+                    f"{' • 🔥 streak ' + str(e['streak']) + ' hari' if e.get('streak', 0) > 1 else ''}"
+                    f"{nxt_tip}{ms}\n\n{fact}")
+        body = (f"✅ Decrypted Successfully\n\n👤 Requested by: {label}\n\n"
+                f"{smart}\n\n📄 {fname}\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n{SEP}\n\n{result}\n\n"
                 "SNIFF CONFIG - diolah oleh @BleackCoderr\n" + WEB_URL)
         btns = [[{"text": "📋 EKSTRAK DATA", "callback_data": f"ex:{uid}"},
-                 {"text": "🖼 LIHAT PNG", "callback_data": f"png:{uid}"}]]
+                 {"text": "ℹ️ DETAIL", "callback_data": f"info:{uid}"}],
+                [{"text": "🖼 LIHAT PNG", "callback_data": f"png:{uid}"}]]
         if where == "grup":
             btns.append([{"text": "📩 KIRIM KE PV (biar grup nggak banjir)", "callback_data": f"pv:{uid}"}])
         btns.append([{"text": "🌐 WEB", "url": WEB_URL}])
@@ -773,7 +782,8 @@ def _handle(msg):
             _send(chat_id, _h(body[:3900]), reply_to=orig_mid)
         ec = DB.get("extract_cache", {})
         ec[str(uid)] = {"r": result[:20000], "t": time.time(), "mid": orig_mid,
-                        "fid": doc.get("file_id"), "fname": fname, "body": body[:30000]}
+                        "fid": doc.get("file_id"), "fname": fname, "body": body[:30000],
+                        "info": info_txt}
         _save("extract_cache", {k: v for k, v in list(ec.items())[-100:]})
         _report_owner(f"🤖 BOT SNIFF ✔ [{BOT_VERSION}]\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n"
                       f"👤 {label} (id={uid})\n📄 {fname} ({len(data)} B)\n🏷️ {fmt}\n📍 {where}")
@@ -815,7 +825,7 @@ def _on_callback(cb):
     uid = cb.get("from", {}).get("id", "")
     data = cb.get("data", "")
     chat_id = cb.get("message", {}).get("chat", {}).get("id")
-    if data.startswith(("ex:", "png:", "pv:")):
+    if data.startswith(("ex:", "png:", "pv:", "info:")):
         kind = data.split(":", 1)[0][2:]
         if str(uid) != data.split(":", 1)[1]:
             _toast(cb["id"], "Ini tombol punya orang lain, bro 🖕"); return
@@ -825,6 +835,11 @@ def _on_callback(cb):
         _toast(cb["id"])
         if kind == "ex":
             _send(chat_id, _extract(hit["r"]) + WATERMARK, reply_to=hit.get("mid"))
+        elif kind == "info":
+            if hit.get("info"):
+                _send(chat_id, hit["info"] + WATERMARK, reply_to=hit.get("mid"))
+            else:
+                _send(chat_id, "ℹ️ Detail sniff udah kebuang — kirim ulang file-nya.", reply_to=hit.get("mid"))
         elif kind == "png":
             png = _render_png(hit["r"], "")
             if png:
