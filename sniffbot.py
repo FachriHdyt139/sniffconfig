@@ -24,7 +24,7 @@ OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
 STARTED = False
 BOOT_TIME = time.time()
-BOT_VERSION = "v8-gate"
+BOT_VERSION = "v8.1"
 WEB_URL = "https://sniffconfig.onrender.com"
 OWNER_TG = "https://t.me/BleackCoderr"
 BOT_LINK = "https://t.me/snifferBC_Bot"
@@ -794,7 +794,7 @@ def _handle(msg):
             ms = f"\n🎉 {MILESTONES[e['count']]}"
         # ── caption CLEAN ala kompetitor — detail pindah ke tombol ℹ️ DETAIL ──
         cap = (f"✅ <b>Decrypted Successfully</b>\n\n"
-               f"👤 Requested by: {_h(label)}")
+               f"👤 Requested by: <b>{_h(label)}</b>")
         info_txt = (f"ℹ️ <b>DETAIL SNIFF</b>\n{SEP}\n\n"
                     f"📄 <code>{_h(fname)}</code>  •  {_h(str(round(fsize / 1024, 1)))} KB\n"
                     f"🏷️ Format: <b>{fmt}</b> {EMOJI.get(fmt, '')}\n"
@@ -806,17 +806,16 @@ def _handle(msg):
         body = (f"✅ Decrypted Successfully\n\n👤 Requested by: {label}\n\n"
                 f"{smart}\n\n📄 {fname}\n🕐 {time.strftime('%d-%m-%Y %H:%M')}\n{SEP}\n\n{result}\n\n"
                 "SNIFF CONFIG - diolah oleh @BleackCoderr\n" + WEB_URL)
-        btns = [[{"text": "📋 EKSTRAK DATA", "callback_data": f"ex:{uid}"},
-                 {"text": "ℹ️ DETAIL", "callback_data": f"info:{uid}"}],
-                [{"text": "🖼 LIHAT PNG", "callback_data": f"png:{uid}"}]]
+        btns = [[{"text": "ℹ️  DETAIL", "callback_data": f"info:{uid}"},
+                 {"text": "👥  GRUP", "url": GROUP_URL}]]
         if where == "grup":
-            btns.append([{"text": "📩 KIRIM KE PV (biar grup nggak banjir)", "callback_data": f"pv:{uid}"}])
-        btns.append([{"text": "🌐 WEB", "url": WEB_URL}])
+            btns.append([{"text": "📩  KIRIM KE PV", "callback_data": f"pv:{uid}"}])
         png = _render_png(result, fmt)
         sent = False
         if png:
             try:
                 _multipart("sendPhoto", {"chat_id": chat_id, "caption": cap[:950],
+                          "parse_mode": "HTML",
                           "reply_markup": json.dumps({"inline_keyboard": btns})},
                           "sniff_" + fmt.lower() + ".png", png, ffield="photo", ctype="image/png",
                           reply_to=orig_mid)
@@ -826,7 +825,7 @@ def _handle(msg):
         if not sent:
             try:
                 _multipart("sendDocument",
-                           {"chat_id": chat_id, "caption": cap[:950],
+                           {"chat_id": chat_id, "caption": cap[:950], "parse_mode": "HTML",
                             "reply_markup": json.dumps({"inline_keyboard": btns})},
                            fname + ".sniffed.txt", body.encode(), reply_to=orig_mid)
                 sent = True
