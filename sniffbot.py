@@ -24,15 +24,58 @@ OWNER_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 COOLDOWN = 180
 STARTED = False
 BOOT_TIME = time.time()
-BOT_VERSION = "v7-clean"
+BOT_VERSION = "v8-gate"
 WEB_URL = "https://sniffconfig.onrender.com"
 OWNER_TG = "https://t.me/BleackCoderr"
 BOT_LINK = "https://t.me/snifferBC_Bot"
+
+# ── GERBANG GRUP (biar SNIFF_lD rame 🖕) ──
+GROUP_URL = "https://t.me/SNIFF_lD"
+GROUP_ID = os.environ.get("SNIFF_GROUP_ID", "@SNIFF_lD")   # bot harus ADMIN di grup ini
+GATE_ON = os.environ.get("SNIFF_GATE", "1") != "0"        # SNIFF_GATE=0 = matiin gate (darurat)
+GATE_TTL = 300                                             # cache cek anggota 5 menit
+_gate_cache = {}
+
+def _member(uid):
+    """True kalau uid terdaftar sebagai anggota grup (anggota tersembunyi pun kehitung
+    selama bot admin). Owner selalu lolos. Cache 5 menit biar nggak borong API."""
+    if _is_owner_cached(uid): return True
+    now = time.time()
+    hit = _gate_cache.get(str(uid))
+    if hit and now - hit[1] < GATE_TTL: return hit[0]
+    ok = False
+    try:
+        st = _api(BOT2_TOKEN, "getChatMember", chat_id=GROUP_ID, user_id=int(uid))
+        ok = st.get("result", {}).get("status") in ("creator", "administrator", "member")
+    except Exception as e:
+        # error = grup private/bot bukan admin ATAU uid bukan angka (chat id negatif)
+        print("gate:", e, flush=True); ok = False
+    _gate_cache[str(uid)] = (ok, now)
+    if len(_gate_cache) > 500:
+        for k in list(_gate_cache)[:200]: _gate_cache.pop(k, None)
+    return ok
+
+def _is_owner_cached(uid):
+    return bool(OWNER_CHAT) and str(uid) == str(OWNER_CHAT)
+
+def _gate_btns(joined):
+    if joined:
+        return [[{"text": "🟢 Sudah Gabung — TAP UNTUK CEK ULANG", "callback_data": "gate:chk"}],
+                [{"text": "🚀 MULAI NGEBOT", "callback_data": "gate:go"}]]
+    return [[{"text": "🔴 GABUNG GRUP DULU, BRO", "url": GROUP_URL}],
+            [{"text": "🔎 UDAH GABUNG? KLIK BUAT CEK", "callback_data": "gate:chk"}]]
 
 # ── gaya visual konsisten ──────────────────────────────────────
 WATERMARK = ("\n\n🐴 <b>SNIFF CONFIG</b> — diolah oleh @BleackCoderr ✦\n"
              f"🌐 {WEB_URL}")
 SEP = "───── • ─────"
+GATE_MSG = ("🚧 <b>GERBANG SNIFF CONFIG</b>\n" + SEP + "\n\n"
+            "Mau nyobek config pake bot ini? Boleh banget —\n"
+            "tapi aturan rumah: <b>gabung grup dulu, Bro</b> 🔥\n\n"
+            f"👥 <a href=\"{GROUP_URL}\">t.me/SNIFF_lD</a>\n\n"
+            "Isinya: sharing config, tips, jualan para senior,\n"
+            "dan update format baru — rame, gratis, nggak ngigit.\n\n"
+            "Udah masuk? Tekan tombol CEK di bawah. 🐴")
 EMOJI = {"HC": "🐴", "EHI": "💉", "SSC": "🔐", "NPVT": "🛰️", "DARK": "🌑", "NPV": "🛰️"}
 FACTS = [
     "💡 Config yang dikunci HWID cuma bisa dibuka di device asalnya.",
@@ -499,6 +542,15 @@ def _handle(msg):
     if where == "pribadi" and uid: _sub(chat_id)
     orig_mid = msg.get("message_id")
 
+    # ── GERBANG GRUP: pribadi chat cuma buat yang udah gabung SNIFF_lD ──
+    if where == "pribadi" and GATE_ON and not _member(uid):
+        gate_key = ("gate", chat_id)
+        prev = _anim.get(gate_key)   # nyimpan message_id gerbang terakhir per chat
+        new_mid = _send(chat_id, GATE_MSG, _gate_btns(False))
+        if new_mid and prev: _delete(chat_id, prev)   # gerbang lama dibersihin
+        if new_mid: _anim[gate_key] = new_mid
+        return
+
     # ── grup: /perintah@Namabot → buang @-nya ──
     if text.startswith("/") and "@" in text.split(" ")[0]:
         text = text.split(" ")[0].split("@", 1)[0] + " " + " ".join(text.split(" ")[1:])
@@ -516,6 +568,8 @@ def _handle(msg):
                   f"ke sini buat nge-sniff. Detail: /help • aturan: /rules")
         return
     if msg.get("left_chat_member"):
+        gone = msg["left_chat_member"].get("id")
+        if gone: _gate_cache.pop(str(gone), None)   # keluar grup = gerbangnya nutup lagi
         return
 
     # ── perintah ──
@@ -825,6 +879,36 @@ def _on_callback(cb):
     uid = cb.get("from", {}).get("id", "")
     data = cb.get("data", "")
     chat_id = cb.get("message", {}).get("chat", {}).get("id")
+
+    # ── gerbang grup ──
+    if data.startswith("gate:"):
+        act = data.split(":", 1)[1]
+        joined = _member(uid)
+        cb_mid = cb.get("message", {}).get("message_id")
+        if act == "chk":
+            _toast(cb["id"], "🟢 Mantap! Lu resmi anggota — pencet MULAI 🚀" if joined
+                   else "🔴 Belum ketuhuan di grup — gabung dulu bro!", alert=not joined)
+            if cb_mid:
+                try:
+                    _api(BOT2_TOKEN, "editMessageText", chat_id=chat_id, message_id=cb_mid,
+                         text=(("✅ <b>AKSES DIBUKA!</b>\n" + SEP + "\n\n"
+                                "Lu udah jadi bagian keluarga <b>SNIFF_lD</b> 🤝\n"
+                                "Gas lempar file config-nya, atau pencet MULAI.") if joined else GATE_MSG),
+                         parse_mode="HTML",
+                         reply_markup=json.dumps({"inline_keyboard": _gate_btns(joined)}))
+                except Exception: pass
+            if joined: _anim.pop(("gate", chat_id), None)
+        elif act == "go":
+            _toast(cb["id"])
+            if not joined:
+                _gate_cache.pop(str(uid), None)   # maksa cek segar
+                _toast(cb["id"], "🔴 Sistem bilang lu belum di grup…", alert=True); return
+            if cb_mid: _delete(chat_id, cb_mid)
+            u = cb.get("from", {})
+            label = ("@" + u["username"]) if u.get("username") else (u.get("first_name") or str(uid))
+            _send(chat_id, WELCOME + _personal(uid, label), TOOLS_ROW)
+        return
+
     if data.startswith(("ex:", "png:", "pv:", "info:")):
         kind = data.split(":", 1)[0][2:]
         if str(uid) != data.split(":", 1)[1]:
