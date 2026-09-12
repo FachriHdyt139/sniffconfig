@@ -79,11 +79,12 @@ main{position:relative;z-index:1;width:min(980px,94%);margin:0 auto;flex:1}
 .stat span{font-size:10px;font-weight:700;letter-spacing:.12em}
 .stat.s1{transform:rotate(-.8deg)}
 html[data-theme="dark"] .stat.s1{background:rgba(30,44,80,.6);border-color:rgba(174,194,248,.5)}
-.stat.s2{background:rgba(169,220,192,.75);transform:rotate(.6deg);color:var(--card-text)}
-.stat.s3{background:rgba(227,167,200,.75);transform:rotate(-.5deg);color:var(--card-text)}
-html[data-theme="dark"] .stat.s2{background:rgba(180,230,200,.8)}
-html[data-theme="dark"] .stat.s3{background:rgba(239,175,207,.8)}
-.stat.s2 b,.stat.s3 b{color:var(--card-text)}
+.stat.s2{transform:rotate(.6deg)}
+.stat.s2 b{color:#2E7D52}
+html[data-theme="dark"] .stat.s2 b{color:var(--sage)}
+.stat.s3{transform:rotate(-.5deg)}
+.stat.s3 b{color:#B54A78}
+html[data-theme="dark"] .stat.s3 b{color:var(--dusty)}
 
 /* ═══ MESIN SNIFF ═══ */
 .machine{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
