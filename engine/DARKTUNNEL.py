@@ -116,8 +116,6 @@ class DTDecryptor:
             normalized = cls._normalize_for_json(outer)
 
             return (
-                f"HABIBI DARK TUNNEL SCRIPT\n"
-                f"{'='*30}\n\n"
                 f"{json.dumps(normalized, indent=4, ensure_ascii=False)}\n\n"
                 f"{'='*30}\n"
                 f"code : @BleackCoderr"

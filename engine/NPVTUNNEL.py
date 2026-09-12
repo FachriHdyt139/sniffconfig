@@ -90,8 +90,6 @@ def run(file_bytes):
         except:
             result_json = {"raw_data": decrypted_str}
         return (
-            f"HABIBIxNULLPTRO NPVT SCRIPT\n"
-            f"{'='*30}\n\n"
             f"{json.dumps(result_json, indent=4, ensure_ascii=False)}\n\n"
             f"{'='*30}\n"
             f"code : @BleackCoderr"
